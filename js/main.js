@@ -8,13 +8,6 @@ const closeBtn = document.getElementById('close-btn');
 const startBtn = document.getElementById('start-btn');
 const titleScreen = document.getElementById('title-screen');
 
-// Mobile controls
-const upBtn = document.getElementById('up-btn');
-const downBtn = document.getElementById('down-btn');
-const leftBtn = document.getElementById('left-btn');
-const rightBtn = document.getElementById('right-btn');
-const actionBtn = document.getElementById('action-btn');
-
 // Game state
 let gameRunning = false;
 const player = {
@@ -200,17 +193,22 @@ const keys = {
     space: false
 };
 
+// Touch state
+let isDragging = false;
+let lastTouchTime = 0;
+
 // Event listeners
 document.addEventListener('keydown', handleKeyDown);
 document.addEventListener('keyup', handleKeyUp);
 closeBtn.addEventListener('click', closePanel);
 startBtn.addEventListener('click', startGame);
 
-// Initialize mobile controls
-setupMobileControls();
+// Setup touch controls
+canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+canvas.addEventListener('touchend', handleTouchEnd);
 
-// Handle window resize
-window.addEventListener('resize', resizeCanvas);
+// Initialize game
 resizeCanvas();
 
 // Game functions
@@ -406,6 +404,21 @@ function checkPlanetInteraction() {
     });
 }
 
+function checkTouchInteraction(x, y) {
+    planets.forEach(planet => {
+        const distance = Math.sqrt(
+            Math.pow(x - planet.x, 2) + 
+            Math.pow(y - planet.y, 2)
+        );
+        
+        if (distance < planet.radius + 20) {
+            panelTitle.textContent = planet.title;
+            panelContent.innerHTML = playerInfo[planet.type];
+            infoPanel.style.display = 'block';
+        }
+    });
+}
+
 function gameLoop() {
     if (!gameRunning) return;
     
@@ -497,101 +510,43 @@ function handleKeyUp(e) {
     }
 }
 
-function setupMobileControls() {
-    // Direction buttons
-    upBtn.addEventListener('touchstart', () => {
-        keys.up = true;
-        player.direction = 'up';
-        player.moving = true;
-        player.engineOn = true;
-    });
+function handleTouchStart(e) {
+    e.preventDefault();
+    const touchTime = Date.now();
+    const isQuickTap = touchTime - lastTouchTime < 300;
+    lastTouchTime = touchTime;
     
-    upBtn.addEventListener('touchend', () => {
-        keys.up = false;
-        if (!keys.down && !keys.left && !keys.right) {
-            player.moving = false;
-            player.engineOn = false;
-        }
-    });
+    const rect = canvas.getBoundingClientRect();
+    const touchX = e.touches[0].clientX - rect.left;
+    const touchY = e.touches[0].clientY - rect.top;
     
-    downBtn.addEventListener('touchstart', () => {
-        keys.down = true;
-        player.direction = 'down';
-        player.moving = true;
-        player.engineOn = true;
-    });
+    player.x = touchX - player.width/2;
+    player.y = touchY - player.height/2;
+    player.moving = true;
+    player.engineOn = true;
+    isDragging = true;
     
-    downBtn.addEventListener('touchend', () => {
-        keys.down = false;
-        if (!keys.up && !keys.left && !keys.right) {
-            player.moving = false;
-            player.engineOn = false;
-        }
-    });
-    
-    leftBtn.addEventListener('touchstart', () => {
-        keys.left = true;
-        player.direction = 'left';
-        player.moving = true;
-        player.engineOn = true;
-    });
-    
-    leftBtn.addEventListener('touchend', () => {
-        keys.left = false;
-        if (!keys.up && !keys.down && !keys.right) {
-            player.moving = false;
-            player.engineOn = false;
-        }
-    });
-    
-    rightBtn.addEventListener('touchstart', () => {
-        keys.right = true;
-        player.direction = 'right';
-        player.moving = true;
-        player.engineOn = true;
-    });
-    
-    rightBtn.addEventListener('touchend', () => {
-        keys.right = false;
-        if (!keys.up && !keys.down && !keys.left) {
-            player.moving = false;
-            player.engineOn = false;
-        }
-    });
-    
-    // Action button
-    actionBtn.addEventListener('touchstart', () => {
-        keys.space = true;
-        checkPlanetInteraction();
-    });
-    
-    actionBtn.addEventListener('touchend', () => {
-        keys.space = false;
-    });
-    
-    // Direct planet tapping
-    canvas.addEventListener('touchstart', (e) => {
+    if (isQuickTap) {
+        checkTouchInteraction(touchX, touchY);
+    }
+}
+
+function handleTouchMove(e) {
+    if (isDragging) {
+        e.preventDefault();
         const rect = canvas.getBoundingClientRect();
         const touchX = e.touches[0].clientX - rect.left;
         const touchY = e.touches[0].clientY - rect.top;
         
-        checkTouchInteraction(touchX, touchY);
-    });
+        player.x = touchX - player.width/2;
+        player.y = touchY - player.height/2;
+    }
 }
 
-function checkTouchInteraction(x, y) {
-    planets.forEach(planet => {
-        const distance = Math.sqrt(
-            Math.pow(x - planet.x, 2) + 
-            Math.pow(y - planet.y, 2)
-        );
-        
-        if (distance < planet.radius + 20) {
-            panelTitle.textContent = planet.title;
-            panelContent.innerHTML = playerInfo[planet.type];
-            infoPanel.style.display = 'block';
-        }
-    });
+function handleTouchEnd() {
+    isDragging = false;
+    player.moving = false;
+    player.engineOn = false;
 }
 
 function resizeCanvas() {
@@ -615,6 +570,9 @@ function resizeCanvas() {
         // Adjust player position
         player.x = canvas.width / 2;
         player.y = canvas.height / 2;
+    } else {
+        canvas.width = 800;
+        canvas.height = 600;
     }
 }
 
@@ -628,6 +586,5 @@ function startGame() {
     gameLoop();
 }
 
-// Initial setup
-canvas.width = 800;
-canvas.height = 600;
+// Handle window resize
+window.addEventListener('resize', resizeCanvas);

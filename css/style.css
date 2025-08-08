@@ -73,14 +73,6 @@ body, html {
     margin-bottom: 15px;
 }
 
-#info-panel ul {
-    padding-left: 20px;
-}
-
-#info-panel li {
-    margin-bottom: 8px;
-}
-
 #skills-list {
     display: flex;
     flex-wrap: wrap;
@@ -127,19 +119,21 @@ body, html {
 
 .project-link {
     display: inline-block;
-    background-color: var(--neon-pink);
-    color: white;
+    background-color: var(--neon-blue);
+    color: var(--dark-blue);
     border: none;
     padding: 8px 15px;
     border-radius: 5px;
     text-decoration: none;
     font-weight: bold;
     margin-top: 10px;
-    transition: background-color 0.3s;
+    transition: all 0.3s;
+    box-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
 }
 
 .project-link:hover {
-    background-color: #b5179e;
+    background-color: var(--neon-pink);
+    color: white;
 }
 
 .contact-link {
@@ -330,99 +324,8 @@ body, html {
     border-bottom-right-radius: 5px;
 }
 
-.pulse {
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% { opacity: 0.7; }
-    50% { opacity: 1; }
-    100% { opacity: 0.7; }
-}
-
-/* Scrollbar styling */
-#info-panel::-webkit-scrollbar {
-    width: 8px;
-}
-
-#info-panel::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
-}
-
-#info-panel::-webkit-scrollbar-thumb {
-    background-color: var(--neon-pink);
-    border-radius: 4px;
-}
-
-/* Mobile controls */
-#mobile-controls {
-    display: none;
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    z-index: 100;
-}
-
-#d-pad {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-    gap: 5px;
-    width: 120px;
-    height: 120px;
-}
-
-.d-pad-btn {
-    background-color: rgba(76, 201, 240, 0.3);
-    border: 2px solid var(--neon-blue);
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 50%;
-    user-select: none;
-    touch-action: manipulation;
-}
-
-.d-pad-btn:active {
-    background-color: rgba(76, 201, 240, 0.7);
-}
-
-.up { grid-column: 2; grid-row: 1; }
-.left { grid-column: 1; grid-row: 2; }
-.center { grid-column: 2; grid-row: 2; opacity: 0; }
-.right { grid-column: 3; grid-row: 2; }
-.down { grid-column: 2; grid-row: 3; }
-
-#action-btn {
-    position: absolute;
-    bottom: 0;
-    left: -130px;
-    width: 120px;
-    height: 50px;
-    background-color: rgba(247, 37, 133, 0.3);
-    border: 2px solid var(--neon-pink);
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 25px;
-    font-size: 0.9rem;
-    user-select: none;
-    touch-action: manipulation;
-}
-
-#action-btn:active {
-    background-color: rgba(247, 37, 133, 0.7);
-}
-
-/* Show controls only on mobile */
+/* Mobile adaptations */
 @media (max-width: 768px) {
-    #mobile-controls {
-        display: block;
-    }
-    
     #controls {
         display: none;
     }
@@ -443,4 +346,24 @@ body, html {
         width: 90%;
         max-height: 50vh;
     }
+
+    .project-link {
+        background-color: var(--neon-blue);
+        color: var(--dark-blue);
+    }
+}
+
+/* Scrollbar styling */
+#info-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+#info-panel::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+#info-panel::-webkit-scrollbar-thumb {
+    background-color: var(--neon-pink);
+    border-radius: 4px;
 }
