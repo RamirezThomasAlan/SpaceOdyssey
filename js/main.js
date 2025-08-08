@@ -8,6 +8,13 @@ const closeBtn = document.getElementById('close-btn');
 const startBtn = document.getElementById('start-btn');
 const titleScreen = document.getElementById('title-screen');
 
+// Mobile controls
+const upBtn = document.getElementById('up-btn');
+const downBtn = document.getElementById('down-btn');
+const leftBtn = document.getElementById('left-btn');
+const rightBtn = document.getElementById('right-btn');
+const actionBtn = document.getElementById('action-btn');
+
 // Game state
 let gameRunning = false;
 const player = {
@@ -199,6 +206,13 @@ document.addEventListener('keyup', handleKeyUp);
 closeBtn.addEventListener('click', closePanel);
 startBtn.addEventListener('click', startGame);
 
+// Initialize mobile controls
+setupMobileControls();
+
+// Handle window resize
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
 // Game functions
 function checkCollision(rect1, rect2) {
     return rect1.x < rect2.x + rect2.width &&
@@ -373,19 +387,23 @@ function updatePlayer() {
     
     // Check for planet collisions
     if (keys.space && infoPanel.style.display !== 'block') {
-        planets.forEach(planet => {
-            const distance = Math.sqrt(
-                Math.pow(player.x + player.width/2 - planet.x, 2) + 
-                Math.pow(player.y + player.height/2 - planet.y, 2)
-            );
-            
-            if (distance < planet.radius + 20) {
-                panelTitle.textContent = planet.title;
-                panelContent.innerHTML = playerInfo[planet.type];
-                infoPanel.style.display = 'block';
-            }
-        });
+        checkPlanetInteraction();
     }
+}
+
+function checkPlanetInteraction() {
+    planets.forEach(planet => {
+        const distance = Math.sqrt(
+            Math.pow(player.x + player.width/2 - planet.x, 2) + 
+            Math.pow(player.y + player.height/2 - planet.y, 2)
+        );
+        
+        if (distance < planet.radius + 20) {
+            panelTitle.textContent = planet.title;
+            panelContent.innerHTML = playerInfo[planet.type];
+            infoPanel.style.display = 'block';
+        }
+    });
 }
 
 function gameLoop() {
@@ -476,6 +494,127 @@ function handleKeyUp(e) {
         case ' ': 
             keys.space = false; 
             break;
+    }
+}
+
+function setupMobileControls() {
+    // Direction buttons
+    upBtn.addEventListener('touchstart', () => {
+        keys.up = true;
+        player.direction = 'up';
+        player.moving = true;
+        player.engineOn = true;
+    });
+    
+    upBtn.addEventListener('touchend', () => {
+        keys.up = false;
+        if (!keys.down && !keys.left && !keys.right) {
+            player.moving = false;
+            player.engineOn = false;
+        }
+    });
+    
+    downBtn.addEventListener('touchstart', () => {
+        keys.down = true;
+        player.direction = 'down';
+        player.moving = true;
+        player.engineOn = true;
+    });
+    
+    downBtn.addEventListener('touchend', () => {
+        keys.down = false;
+        if (!keys.up && !keys.left && !keys.right) {
+            player.moving = false;
+            player.engineOn = false;
+        }
+    });
+    
+    leftBtn.addEventListener('touchstart', () => {
+        keys.left = true;
+        player.direction = 'left';
+        player.moving = true;
+        player.engineOn = true;
+    });
+    
+    leftBtn.addEventListener('touchend', () => {
+        keys.left = false;
+        if (!keys.up && !keys.down && !keys.right) {
+            player.moving = false;
+            player.engineOn = false;
+        }
+    });
+    
+    rightBtn.addEventListener('touchstart', () => {
+        keys.right = true;
+        player.direction = 'right';
+        player.moving = true;
+        player.engineOn = true;
+    });
+    
+    rightBtn.addEventListener('touchend', () => {
+        keys.right = false;
+        if (!keys.up && !keys.down && !keys.left) {
+            player.moving = false;
+            player.engineOn = false;
+        }
+    });
+    
+    // Action button
+    actionBtn.addEventListener('touchstart', () => {
+        keys.space = true;
+        checkPlanetInteraction();
+    });
+    
+    actionBtn.addEventListener('touchend', () => {
+        keys.space = false;
+    });
+    
+    // Direct planet tapping
+    canvas.addEventListener('touchstart', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const touchX = e.touches[0].clientX - rect.left;
+        const touchY = e.touches[0].clientY - rect.top;
+        
+        checkTouchInteraction(touchX, touchY);
+    });
+}
+
+function checkTouchInteraction(x, y) {
+    planets.forEach(planet => {
+        const distance = Math.sqrt(
+            Math.pow(x - planet.x, 2) + 
+            Math.pow(y - planet.y, 2)
+        );
+        
+        if (distance < planet.radius + 20) {
+            panelTitle.textContent = planet.title;
+            panelContent.innerHTML = playerInfo[planet.type];
+            infoPanel.style.display = 'block';
+        }
+    });
+}
+
+function resizeCanvas() {
+    if (window.innerWidth <= 768) {
+        const maxWidth = window.innerWidth * 0.95;
+        const maxHeight = window.innerHeight * 0.7;
+        
+        canvas.width = maxWidth;
+        canvas.height = maxHeight;
+        
+        // Recalculate planet positions
+        planets.forEach(planet => {
+            planet.x = canvas.width / 2 + (planet.originalX - 400) * (maxWidth / 800);
+            planet.y = canvas.height / 2 + (planet.originalY - 300) * (maxHeight / 600);
+            planet.orbitRadius = Math.sqrt(
+                Math.pow(planet.x - canvas.width/2, 2) + 
+                Math.pow(planet.y - canvas.height/2, 2)
+            );
+        });
+        
+        // Adjust player position
+        player.x = canvas.width / 2;
+        player.y = canvas.height / 2;
     }
 }
 
