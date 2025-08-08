@@ -2,16 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thomas Ramírez - Space Odyssey</title>
     <link rel="stylesheet" href="./css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
 </head>
 <body>
     <div id="game-container">
-        <canvas id="game-canvas"></canvas>
+        <canvas id="game-canvas" width="800" height="600"></canvas>
         
         <div id="title-screen">
             <div id="title-content">
@@ -19,6 +17,11 @@
                 <p>Explore the digital universe to discover Thomas Ramírez's portfolio</p>
                 <button id="start-btn">LAUNCH</button>
             </div>
+        </div>
+        
+        <div id="controls">
+            <p>↑ ↓ ← → - Move</p>
+            <p>SPACE - Interact</p>
         </div>
         
         <div id="info-panel">
