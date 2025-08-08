@@ -11,8 +11,8 @@ const titleScreen = document.getElementById('title-screen');
 // Game state
 let gameRunning = false;
 const player = {
-    x: 400,
-    y: 300,
+    x: 0,
+    y: 0,
     width: 32,
     height: 32,
     speed: 4,
@@ -26,59 +26,56 @@ const planets = [
     {
         type: 'about',
         title: 'About Me',
-        x: 400,
-        y: 150,
-        radius: 50,
+        x: 0,
+        y: 0,
+        radius: 0,
         color: '#4cc9f0',
         angle: 0,
         speed: 0.005,
         hasRing: false,
-        orbitRadius: 0
+        orbitRadius: 0,
+        originalRadius: 50
     },
     {
         type: 'skills',
         title: 'Skills',
-        x: 550,
-        y: 300,
-        radius: 40,
+        x: 0,
+        y: 0,
+        radius: 0,
         color: '#f72585',
         angle: Math.PI/2,
         speed: 0.008,
         hasRing: true,
-        orbitRadius: 0
+        orbitRadius: 0,
+        originalRadius: 40
     },
     {
         type: 'projects',
         title: 'Projects',
-        x: 400,
-        y: 450,
-        radius: 45,
+        x: 0,
+        y: 0,
+        radius: 0,
         color: '#7209b7',
         angle: Math.PI,
         speed: 0.006,
         hasRing: false,
-        orbitRadius: 0
+        orbitRadius: 0,
+        originalRadius: 45
     },
     {
         type: 'contact',
         title: 'Contact',
-        x: 250,
-        y: 300,
-        radius: 35,
+        x: 0,
+        y: 0,
+        radius: 0,
         color: '#3a86ff',
         angle: 3*Math.PI/2,
         speed: 0.007,
         hasRing: true,
-        orbitRadius: 0
+        orbitRadius: 0,
+        originalRadius: 35
     }
 ];
-
-// Initialize planet orbits
-planets.forEach(planet => {
-    planet.orbitRadius = Math.sqrt(Math.pow(planet.x - 400, 2) + Math.pow(planet.y - 300, 2));
-    planet.originalX = planet.x;
-    planet.originalY = planet.y;
-});
 
 // Player info
 const playerInfo = {
@@ -184,22 +181,11 @@ const playerInfo = {
     `
 };
 
-// Keyboard state
-const keys = {
-    up: false,
-    down: false,
-    left: false,
-    right: false,
-    space: false
-};
-
 // Touch state
 let isDragging = false;
 let lastTouchTime = 0;
 
 // Event listeners
-document.addEventListener('keydown', handleKeyDown);
-document.addEventListener('keyup', handleKeyUp);
 closeBtn.addEventListener('click', closePanel);
 startBtn.addEventListener('click', startGame);
 
@@ -207,18 +193,13 @@ startBtn.addEventListener('click', startGame);
 canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
 canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
 canvas.addEventListener('touchend', handleTouchEnd);
+canvas.addEventListener('click', handleClick);
 
 // Initialize game
 resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
 // Game functions
-function checkCollision(rect1, rect2) {
-    return rect1.x < rect2.x + rect2.width &&
-           rect1.x + rect1.width > rect2.x &&
-           rect1.y < rect2.y + rect2.height &&
-           rect1.y + rect1.height > rect2.y;
-}
-
 function drawSpaceship() {
     ctx.save();
     ctx.translate(player.x + player.width/2, player.y + player.height/2);
@@ -377,34 +358,7 @@ function drawStars() {
     }
 }
 
-function updatePlayer() {
-    if (keys.up && player.y > 0) player.y -= player.speed;
-    if (keys.down && player.y < canvas.height - player.height) player.y += player.speed;
-    if (keys.left && player.x > 0) player.x -= player.speed;
-    if (keys.right && player.x < canvas.width - player.width) player.x += player.speed;
-    
-    // Check for planet collisions
-    if (keys.space && infoPanel.style.display !== 'block') {
-        checkPlanetInteraction();
-    }
-}
-
-function checkPlanetInteraction() {
-    planets.forEach(planet => {
-        const distance = Math.sqrt(
-            Math.pow(player.x + player.width/2 - planet.x, 2) + 
-            Math.pow(player.y + player.height/2 - planet.y, 2)
-        );
-        
-        if (distance < planet.radius + 20) {
-            panelTitle.textContent = planet.title;
-            panelContent.innerHTML = playerInfo[planet.type];
-            infoPanel.style.display = 'block';
-        }
-    });
-}
-
-function checkTouchInteraction(x, y) {
+function checkPlanetInteraction(x, y) {
     planets.forEach(planet => {
         const distance = Math.sqrt(
             Math.pow(x - planet.x, 2) + 
@@ -431,8 +385,7 @@ function gameLoop() {
     // Draw planets
     drawPlanets();
     
-    // Update and draw player
-    updatePlayer();
+    // Draw player
     drawSpaceship();
     
     // Continue loop
@@ -440,76 +393,6 @@ function gameLoop() {
 }
 
 // Event handlers
-function handleKeyDown(e) {
-    if (!gameRunning) return;
-    
-    switch(e.key) {
-        case 'ArrowUp': 
-            keys.up = true; 
-            player.direction = 'up'; 
-            player.moving = true; 
-            player.engineOn = true; 
-            break;
-        case 'ArrowDown': 
-            keys.down = true; 
-            player.direction = 'down'; 
-            player.moving = true; 
-            player.engineOn = true; 
-            break;
-        case 'ArrowLeft': 
-            keys.left = true; 
-            player.direction = 'left'; 
-            player.moving = true; 
-            player.engineOn = true; 
-            break;
-        case 'ArrowRight': 
-            keys.right = true; 
-            player.direction = 'right'; 
-            player.moving = true; 
-            player.engineOn = true; 
-            break;
-        case ' ': 
-            keys.space = true; 
-            break;
-    }
-}
-
-function handleKeyUp(e) {
-    switch(e.key) {
-        case 'ArrowUp': 
-            keys.up = false; 
-            if (!keys.down && !keys.left && !keys.right) { 
-                player.moving = false; 
-                player.engineOn = false; 
-            } 
-            break;
-        case 'ArrowDown': 
-            keys.down = false; 
-            if (!keys.up && !keys.left && !keys.right) { 
-                player.moving = false; 
-                player.engineOn = false; 
-            } 
-            break;
-        case 'ArrowLeft': 
-            keys.left = false; 
-            if (!keys.up && !keys.down && !keys.right) { 
-                player.moving = false; 
-                player.engineOn = false; 
-            } 
-            break;
-        case 'ArrowRight': 
-            keys.right = false; 
-            if (!keys.up && !keys.down && !keys.left) { 
-                player.moving = false; 
-                player.engineOn = false; 
-            } 
-            break;
-        case ' ': 
-            keys.space = false; 
-            break;
-    }
-}
-
 function handleTouchStart(e) {
     e.preventDefault();
     const touchTime = Date.now();
@@ -520,14 +403,26 @@ function handleTouchStart(e) {
     const touchX = e.touches[0].clientX - rect.left;
     const touchY = e.touches[0].clientY - rect.top;
     
+    // Update player position
     player.x = touchX - player.width/2;
     player.y = touchY - player.height/2;
+    
+    // Calculate direction based on movement
+    const dx = touchX - (player.x + player.width/2);
+    const dy = touchY - (player.y + player.height/2);
+    
+    if (Math.abs(dx) > Math.abs(dy)) {
+        player.direction = dx > 0 ? 'right' : 'left';
+    } else {
+        player.direction = dy > 0 ? 'down' : 'up';
+    }
+    
     player.moving = true;
     player.engineOn = true;
     isDragging = true;
     
     if (isQuickTap) {
-        checkTouchInteraction(touchX, touchY);
+        checkPlanetInteraction(touchX, touchY);
     }
 }
 
@@ -538,8 +433,19 @@ function handleTouchMove(e) {
         const touchX = e.touches[0].clientX - rect.left;
         const touchY = e.touches[0].clientY - rect.top;
         
+        // Update player position
         player.x = touchX - player.width/2;
         player.y = touchY - player.height/2;
+        
+        // Calculate direction based on movement
+        const dx = touchX - (player.x + player.width/2);
+        const dy = touchY - (player.y + player.height/2);
+        
+        if (Math.abs(dx) > Math.abs(dy)) {
+            player.direction = dx > 0 ? 'right' : 'left';
+        } else {
+            player.direction = dy > 0 ? 'down' : 'up';
+        }
     }
 }
 
@@ -549,31 +455,38 @@ function handleTouchEnd() {
     player.engineOn = false;
 }
 
+function handleClick(e) {
+    if (!gameRunning) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+    
+    checkPlanetInteraction(clickX, clickY);
+}
+
 function resizeCanvas() {
-    if (window.innerWidth <= 768) {
-        const maxWidth = window.innerWidth * 0.95;
-        const maxHeight = window.innerHeight * 0.7;
-        
-        canvas.width = maxWidth;
-        canvas.height = maxHeight;
-        
-        // Recalculate planet positions
-        planets.forEach(planet => {
-            planet.x = canvas.width / 2 + (planet.originalX - 400) * (maxWidth / 800);
-            planet.y = canvas.height / 2 + (planet.originalY - 300) * (maxHeight / 600);
-            planet.orbitRadius = Math.sqrt(
-                Math.pow(planet.x - canvas.width/2, 2) + 
-                Math.pow(planet.y - canvas.height/2, 2)
-            );
-        });
-        
-        // Adjust player position
-        player.x = canvas.width / 2;
-        player.y = canvas.height / 2;
-    } else {
-        canvas.width = 800;
-        canvas.height = 600;
-    }
+    // Set canvas to full window size
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    // Initialize player position
+    player.x = canvas.width / 2 - player.width / 2;
+    player.y = canvas.height / 2 - player.height / 2;
+    
+    // Calculate planet sizes and positions based on screen size
+    const minDimension = Math.min(canvas.width, canvas.height);
+    const scaleFactor = minDimension / 800; // Base size on 800px
+    
+    planets.forEach(planet => {
+        planet.radius = planet.originalRadius * scaleFactor * 0.8;
+        planet.orbitRadius = minDimension * 0.35;
+    });
+    
+    // Adjust player size
+    player.width = 32 * scaleFactor;
+    player.height = 32 * scaleFactor;
+    player.speed = 4 * scaleFactor;
 }
 
 function closePanel() {
@@ -583,8 +496,6 @@ function closePanel() {
 function startGame() {
     titleScreen.style.display = 'none';
     gameRunning = true;
+    resizeCanvas();
     gameLoop();
 }
-
-// Handle window resize
-window.addEventListener('resize', resizeCanvas);
